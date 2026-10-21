@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Smoke test for the chat UI: verifies the refactored widgets render
+// the welcome state, message list scaffold, and composer correctly.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:devmate/main.dart';
+import 'package:devmate/widgets/message_composer.dart';
+import 'package:devmate/widgets/welcome_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('Chat screen renders welcome state and composer', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ProviderScope(child: DevMateApp()));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // App bar.
+    expect(find.text('DevMate'), findsOneWidget);
+
+    // Welcome screen (empty chat).
+    expect(find.byType(WelcomeScreen), findsOneWidget);
+    expect(find.text('Hey, developer.'), findsOneWidget);
+    expect(find.text('Explain code'), findsOneWidget);
+
+    // Composer.
+    expect(find.byType(MessageComposer), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
   });
 }

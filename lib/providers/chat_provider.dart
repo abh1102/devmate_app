@@ -1,14 +1,11 @@
-import 'package:flutter/foundation.dart';
-
 import '../models/chat_messages.dart';
 import '../service/ai_service.dart';
 
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
-final chatProvider =
-NotifierProvider<ChatNotifier, ChatState>(ChatNotifier.new);
+final chatProvider = NotifierProvider<ChatNotifier, ChatState>(
+  ChatNotifier.new,
+);
 
 class ChatState {
   final List<ChatMessage> messages;
@@ -69,10 +66,7 @@ class ChatNotifier extends Notifier<ChatState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
