@@ -1,11 +1,16 @@
-import 'package:flutter/material.dart';
+
+enum MessageRole { user, assistant }
 
 class ChatMessage {
-  const ChatMessage({
-    required this.text,
-    required this.isUser,
-  });
-
   final String text;
-  final bool isUser;
+  final MessageRole role;
+  final DateTime timestamp;
+
+  ChatMessage({
+    required this.text,
+    required this.role,
+    DateTime? timestamp,
+  }) : timestamp = timestamp ?? DateTime.now();
+
+  bool get isUser => role == MessageRole.user;
 }

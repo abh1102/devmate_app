@@ -1,41 +1,71 @@
 
+import 'dart:convert';
+
+
 import 'package:dio/dio.dart';
 
-class AiService {
-  AiService()
-      : _dio = Dio(
-    BaseOptions(
-      baseUrl: 'http://localhost:8081',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(minutes: 3),
-    ),
-  );
+class ChatService {
+  static const String baseUrl = 'http://192.168.1.235:8081';
 
-  final Dio _dio;
+  late final Dio _dio;
+
+  ChatService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 90),
+        sendTimeout: const Duration(seconds: 15),
+        headers: {
+          'Accept': 'application/json',
+        },
+      ),
+    );
+  }
 
   Future<String> sendMessage(String prompt) async {
     try {
       final response = await _dio.get(
         '/api/ai/chat',
-        queryParameters: {'prompt': prompt},
+        queryParameters: {
+          'prompt': prompt,
+        },
       );
 
       final data = response.data;
 
-      if (data is Map && data['response'] is String) {
-        return (data['response'] as String).trim();
+      if (data is! Map<String, dynamic>) {
+        throw Exception('Invalid API response format.');
       }
 
-      throw Exception('Unexpected response from DevMate API.');
+      final answer = data['response'];
+
+      if (answer == null || answer.toString().trim().isEmpty) {
+        throw Exception('The AI returned an empty response.');
+      }
+
+      return answer.toString();
     } on DioException catch (e) {
-      final data = e.response?.data;
-      final message = data is Map
-          ? data['detail'] ?? data['message'] ?? data['error']
-          : null;
+      if (e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('Connection timed out. Check your backend.');
+      }
+
+      if (e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('The AI took too long to respond.');
+      }
+
+      if (e.type == DioExceptionType.connectionError) {
+        throw Exception(
+          'Could not connect to DevMate API. '
+              'Check the server and base URL.',
+        );
+      }
+
+      final statusCode = e.response?.statusCode;
+      final body = e.response?.data;
 
       throw Exception(
-        message?.toString() ??
-            'Could not connect to DevMate AI. Check the backend.',
+        'API error ${statusCode ?? "unknown"}: $body',
       );
     }
   }
